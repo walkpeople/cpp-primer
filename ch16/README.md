@@ -106,7 +106,7 @@ template <typename T> inline T foo() {...}
 
    
 
-3. 类模板的成员函数：既可以类模板内部定义，也可以在外部。在外部声明如下: 
+3. 类模板的成员函数：既可以类模板内部定义，也可以在外部定义.在外部声明如下: 
 
    ```c++
    template <typename T>
@@ -125,5 +125,102 @@ template <typename T> inline T foo() {...}
 
 5. 在类代码内简化模板类名的使用
 
+   ​	当使用一个类模板类型时必须指定模板实参。 但有一个例外： 便是在类模板自己的作用域内，可以直接使用模板名而不提供实参。
    
+   ```c++
+   #include <iostream>
+   #include <memory>
+   #include <vector>
+   
+   template<typename T> class Blob;
+   template<typename T> class BlobPtr{
+     public:
+       BlobPtr(): curr(0) {}
+       BlobPtr(Blob<T> &a, size_t sz = 0) : wptr(a.data), curr(sz) {}
+       T& operator*() const {
+         auto p = check(curr, "deference past end");
+         return (*p)[curr];
+       }
+   
+       // ++i; 此处直接使用模板名而不提供实参
+       BlobPtr operator++();
+       BlobPtr operator--();
+   
+     private:
+       std::shared_ptr<std::vector<T>> check(std::size_t, const std::string &msg) const;
+       std::weak_ptr<std::vector<T>> wptr;
+       std::size_t curr;
+   }
+   ```
+   
+   
+   
+6. 在类代码外使用模板名:
+
+   进入类的作用域后也可省略实参。
+
+   ```c++
+   template<typename T> 
+   BlobPtr<T> BlobPtr<T>::operator++(int) {
+     // 与 BlobPtr<T> ret = *this;等价
+     BlobPtr ret = *this;
+     ++*this;
+     return ret;
+   }
+   ```
+
+
+
+7. 类模板与友元
+
+   如果一个类内包含一个非模板友元，则友元被授权访问所有该类的模板实例。
+
+   如果友元自身为模板，类可以授权给所有友元模板实例，也可以只授权给特定实例。
+
+   1. 一对一
+
+      ```c++
+      // 前置声明; 在Blob中声明友元所需要的
+      // 声明模板；模板声明包含模板参数列表
+      template <typename> class BlobPtr;
+      template <typename> class Blob;
+      
+      template <typename T>
+      bool operator==(const Blob<T>&, const Blob<T>&);
+      
+      template <typename T>
+      class Blob {
+        friend class BlobPtr<T>;
+        // 友元的声明使用Blob的模板形参作为自己模板实参
+        // 因此友好关系被限定在用相同类型实例化的Blob与BlobPtr相等运算符之间。
+        friend bool operator==<T>(const Blob<T>&, const Blob<T>&);
+      };
+      ```
+
+   2. 通用和特定的模板
+
+      一个类可以将另一个模板的每个实例都声明为自己的友元。或者限定特定的实例为友元。
+
+      **Note:** 为了使所有实例成为友元，友元声明中必须使用与类模板本身不同的模板参数。
+
+      ```c++
+      // 一个类可以将另一个模板的每个实例都声明为自己的友元。或者限定特定的实例为友元。
+      // 前置声明，在将模板的一个特定实例声明为友元要用到。
+      template <typename T> class Pal;
+      class C {
+        friend class Pal<C>; // 用类C实例化的Pal是C的一个友元
+        // Pal2的所有实例都是C的友元; 此情况无须前置声明
+        template <typename T> friend class Pal2;
+      };
+      
+      template <typename T> class C2 {
+        // C2的每个实例将相同实例化的Pal声明为友元
+        friend class Pal<T>;  // Pal的模板声明必须在作用域之内;
+        template <typename X> friend class Pal2; // Pal2的所有实例都是C2的每个实例的友元,不需要前置声明
+        // Pal3 是一个非模板类，它是C2所有实例的友元。
+        friend class Pal3; //不需要Pal3的前置声明。
+      }
+      ```
+
+      
 
