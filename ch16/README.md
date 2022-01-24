@@ -63,4 +63,67 @@ template <typename T> inline T foo() {...}
 
 ## 2. 类模板
 
-1. 编译器不能为类模板推断模板参数类型。使用 **显式模板实参** 来指定模板参数类型。
+1. 编译器不能为类模板推断模板参数类型。使用 **显式模板实参** 来指定模板参数类型。定义
+
+   ```c++
+   template <typename T>
+   class Blob {
+    public:
+     typedef T value_type;
+     typedef typename std::vector<T>::size_type size_type;
+   
+     // Constructor
+     Blob() : data(std::make_shared<std::vector<T>>()) {}
+     Blob(std::initializer_list<T> il)
+         : data(std::make_shared<std::vector<T>>(il)) {}
+   
+     // Number of elements in the Blob;
+     size_type size() const { return data->size(); };
+     bool empty() { return data->empty(); };
+     // Add or Delete element
+     void push_back(const T& t) { data->push_back(t); }
+     void push_back(const T&& t) { data->push_back(std::move(t)); }
+     void pop_back();
+   
+     // visit element
+     T& back();
+     T& operator[](size_type i);
+   
+    private:
+     std::shared_ptr<std::vector<T>> data;
+     void check(size_type i, const std::string& msg) const;
+   };
+   ```
+
+   
+
+2. 实例化模板，使用 **显式模板实参** 来指定模板参数类型
+
+   ```c++
+   Blob<int> ia;
+   Blob<int> ia2 = {0, 1, 2, 3, 4};
+   ```
+
+   
+
+3. 类模板的成员函数：既可以类模板内部定义，也可以在外部。在外部声明如下: 
+
+   ```c++
+   template <typename T>
+   void Blob<T>::check(size_type i, const std::string& msg) const {
+     if (i >= data->size()) throw std::out_of_range(msg);
+   }
+   ```
+
+   
+
+4. 类模板成员函数的实例化:
+
+   默认情况下，一个类模板的成员函数只有当程序用到它时才进行实例化。如果一个函数没有被使用，那么编译器不会将它实例化。
+
+   
+
+5. 在类代码内简化模板类名的使用
+
+   
+
