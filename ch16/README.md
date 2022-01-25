@@ -2,9 +2,9 @@
 
 ## 1. 函数模板
 
-### 定义一个函数模板
+1. **定义一个函数模板**
+   * 使用`typename`来声明模板参数. 早期也用`class`
 
-* 使用`typename`来声明模板参数. 早期也用`class`
 
 ```c++
 template <typename T> int compare(const T &v1, const T &v2) {
@@ -14,9 +14,11 @@ template <typename T> int compare(const T &v1, const T &v2) {
 }
 ```
 
-### 实例化函数模板
 
-​	当调用一个函数模板时，编译器会根据函数实参来推断模板实参。然后实例化`(instantiate)`一个特定版本的函数。如:  `compare(2, 3)`,编译器将实例化出
+
+2. **实例化函数模板**
+
+​		当调用一个函数模板时，编译器会根据函数实参来推断模板实参。然后实例化`(instantiate)`一个特定版本的函数。如:  `compare(2, 3)`,编译器将实例化出	
 
 ```c++
 int compare(const int &v1, const int &v2){....}
@@ -24,9 +26,9 @@ int compare(const int &v1, const int &v2){....}
 
 
 
-### 模板类型参数/非模板类型参数
+3. **模板类型参数/非模板类型参数**
 
-   模板类型参数一般使用`typename`和`class`来修饰。模板类型参数也可以作为函数的返回类型和参数类型，也可以在函数内用于变量声明和类型转换。
+  	 模板类型参数一般使用`typename`和`class`来修饰。模板类型参数也可以作为函数的返回类型和参数类型，也可以在函数内用于变量声明和类型转换。
 
 ```c++
 template <typename T> T foo(T *t) {
@@ -51,7 +53,7 @@ int compare(const char a[6], char b[7])
 
 
 
-### `inline`/`constexpr`的函数模板。
+4.  **`inline`/`constexpr`的函数模板。**
 
 `inline`和`constexpr`说明符置于模板参数列表之后， 返回值之前 。
 
@@ -63,7 +65,7 @@ template <typename T> inline T foo() {...}
 
 ## 2. 类模板
 
-1. 编译器不能为类模板推断模板参数类型。使用 **显式模板实参** 来指定模板参数类型。定义
+1. **编译器不能为类模板推断模板参数类型。使用 *显式模板实参* 来指定模板参数类型。定义**
 
    ```c++
    template <typename T>
@@ -97,7 +99,7 @@ template <typename T> inline T foo() {...}
 
    
 
-2. 实例化模板，使用 **显式模板实参** 来指定模板参数类型
+2. **实例化模板**，使用 **显式模板实参** 来指定模板参数类型
 
    ```c++
    Blob<int> ia;
@@ -106,7 +108,7 @@ template <typename T> inline T foo() {...}
 
    
 
-3. 类模板的成员函数：既可以类模板内部定义，也可以在外部定义.在外部声明如下: 
+3. **类模板的成员函数**：既可以类模板内部定义，也可以在外部定义.在外部声明如下: 
 
    ```c++
    template <typename T>
@@ -117,13 +119,13 @@ template <typename T> inline T foo() {...}
 
    
 
-4. 类模板成员函数的实例化:
+4. **类模板成员函数的实例化:**
 
    默认情况下，一个类模板的成员函数只有当程序用到它时才进行实例化。如果一个函数没有被使用，那么编译器不会将它实例化。
 
    
 
-5. 在类代码内简化模板类名的使用
+5. **在类代码内简化模板类名的使用**
 
    ​	当使用一个类模板类型时必须指定模板实参。 但有一个例外： 便是在类模板自己的作用域内，可以直接使用模板名而不提供实参。
    
@@ -155,7 +157,7 @@ template <typename T> inline T foo() {...}
    
    
    
-6. 在类代码外使用模板名:
+6. **在类代码外使用模板名:**
 
    进入类的作用域后也可省略实参。
 
@@ -171,7 +173,7 @@ template <typename T> inline T foo() {...}
 
 
 
-7. 类模板与友元
+7. **类模板与友元**
 
    如果一个类内包含一个非模板友元，则友元被授权访问所有该类的模板实例。
 
@@ -222,5 +224,77 @@ template <typename T> inline T foo() {...}
       }
       ```
 
-      
+   
+
+8. **模板自己的类型成为友元**
+
+   ​	新标准中允许将模板类型声明为友元。
+
+   ```c++
+   template <typename T> clas Bar {
+       friend T;
+   }
+   ```
+
+   
+
+ 9. **模板类型别名**
+
+    1. 使用`typedef`来引用一个实例化的类，但无法定义一个`typedef` 引用一个模板。
+
+       ```c++
+       typedef Blob<string> StrBlob;
+       ```
+
+    2. 虽然无法使`typedef`引用一个模板，但新标准允许我们为类模板定义一个类型别名。
+
+       ```c++
+       template <typename T> using twin = pair<T, T>;
+       twin<string> authors;
+       ```
+
+    3. 为类模板定义类型别名时，也可以固定一个或多个模板参数。
+
+       ```c++
+       template <typename T> using partNo = pair<T, unsigned>;
+       partNo<string> books; // books => pair<string, unsigned>
+       ```
+
+ 10. **类模板的`static`成员**
+
+     ​	一个static成员函数只有在使用时才会实例化。
+
+     1. 类模板可以声明`static`成员, 如下面的例子，对于指定类型T, 所有`Foo<T>`类型共享相同的`curr`对象和`count()`函数。  所有`Foo<string>`共享`Foo<string>::curr`, `Foo<int`共享`Foo<int>::curr`
+     
+         ```c++
+         template <typename T> class Foo {
+         public: 
+            static std::size_t count()  { return curr; }
+         private:
+             static std::size_t curr;
+         }
+         ```
+     
+     2. 在类模板外部定义静态成员，与定义类模板的其他成员类似。 当使用一个特定的模板实参类型实例化Foo时，将会为该类型实例化一个独立的`curr`并初始化为0.
+     
+         ```c++
+         template <typename T> Foo<T>::curr = 0;
+         ```
+     
+         
+     
+     3. 访问类模板的静态成员时，必须同时指定模板类型实参。
+     
+         ```c++
+         Foo<int> fi;
+         auto ct = Foo<int>::count();
+         ct = fi.count();
+         ct = Foo<int>::curr;
+         ```
+     
+         
+
+## 3. 模板参数
+
+
 
