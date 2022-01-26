@@ -296,5 +296,37 @@ template <typename T> inline T foo() {...}
 
 ## 3. 模板参数
 
+1. **使用类的类型成员**
 
+   ​	可以使用`::(作用域运算符)`来访问类的static成员和类型成员，但对于类模板，可能会产生歧义，如`T::mem`我们并不知道`mem`是一个static成员还是类型成员。普通类如`string::size_type`编译器根据string的定义，从而知道`size_type`是一个类型。但`T::mem`直到模板实例化时候才能知道。因为我们需要显式告诉编译器`mem`是类型还是static成员。通过`typename`来指定：
 
+   ```c++
+   template <typename T> typename T::value_type top(const T& c) {
+      
+   }
+   ```
+
+2. **默认模板实参**
+
+   在新标准中，我们可以为函数和类模板提供默认实参，但早期版本只允许为类模板提供默认实参。在下
+
+   ```c++
+   template <typename T, typename F = less<T>> 
+   int compare (const T &v1, const T&v2, F f = F()) {
+       
+   }
+   ```
+
+3. **模板默认实参与类模板**
+
+   ​	使用类模板模板时，我们必须使用尖括号指定模板类型，但如果一个类模板为其所有模板参数都提供了默认实参，且我们希望使用这些默认实参，那可以模板名后跟一个空尖括号对。
+
+   ```c++
+   template <typename T = int>
+   class Numbers { ... }
+   
+   // 使用默认参数版本。
+   Numbers<> n;
+   ```
+
+   
