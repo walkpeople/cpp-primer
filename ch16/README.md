@@ -330,3 +330,40 @@ template <typename T> inline T foo() {...}
    ```
 
    
+
+## 4. 成员模板
+
+​	一个类(普通类或者类模板)可以包含本身是模板的成员函数。这种成员叫`成员模板`
+
+ 1.**普通类的成员模板**	
+
+```c++
+#include <iostream>
+
+class DebugDelete {
+public:
+  DebugDelete(std::ostream &s = std::cerr) : os(s) {}
+  template <typename T> void operator()(T *p) const {
+    os << "deleteing unique_ptr" << std::endl;
+    delete p;
+  }
+
+private:
+  std::ostream &os;
+};	
+```
+
+成员模板在实例化时会生成其特定的版本
+
+```c++
+double *p = new double;
+DebugDelete d;
+d(p);
+int *ip = new int;
+DebugDelete()(ip);
+
+// 实例化
+void DebugDelete::operator()(double *p) const {....}
+void DebugDelete::operator()(int *p) const {....}
+```
+

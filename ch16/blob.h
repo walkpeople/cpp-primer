@@ -77,4 +77,4 @@ template <typename T> class C2 {
   template <typename X> friend class Pal2; // Pal2的所有实例都是C2的每个实例的友元,不需要前置声明
   // Pal3 是一个非模板类，它是C2所有实例的友元。
   friend class Pal3; //不需要Pal3的前置声明。
-}
+};
