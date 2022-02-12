@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "blob.h"
-#include "sec_02_type_trans.h"
+#include "sec_02.h"
 
 using std::cout;
 using std::endl;
@@ -10,6 +10,11 @@ void test_sec_02_type_trans() {
   std::string str = "hello";
   char s = sec_02::fcn2(str.begin(), str.end());
   cout << s << endl;
+}
+
+void test_sec_02_override() {
+  std::string s("hi");
+  cout << sec_02::debug_rep(s) << endl;
 }
 
 void test_blob() {
@@ -23,4 +28,7 @@ void test_blob() {
   cout << "size: " << blob.size() << endl;
   cout << "empty: " << blob.empty() << endl;
 }
-int main() { test_sec_02_type_trans(); }
+int main() {
+  test_sec_02_type_trans();
+  test_sec_02_override();
+}
