@@ -329,8 +329,41 @@ template <typename T> inline T foo() {...}
    Numbers<> n;
    ```
 
+## 4. 成员模板
 
+​	一个类(普通类或者类模板)可以包含本身是模板的成员函数。这种成员叫`成员模板`
 
+ 1.**普通类的成员模板**	
+
+```c++
+#include <iostream>
+
+class DebugDelete {
+public:
+  DebugDelete(std::ostream &s = std::cerr) : os(s) {}
+  template <typename T> void operator()(T *p) const {
+    os << "deleteing unique_ptr" << std::endl;
+    delete p;
+  }
+
+private:
+  std::ostream &os;
+};	
+```
+
+成员模板在实例化时会生成其特定的版本
+
+```c++
+double *p = new double;
+DebugDelete d;
+d(p);
+int *ip = new int;
+DebugDelete()(ip);
+
+// 实例化
+void DebugDelete::operator()(double *p) const {....}
+void DebugDelete::operator()(int *p) const {....}
+```
 
 # 模板实参推断
 
@@ -614,8 +647,53 @@ s2 = std::move(s1);
 
 ## 7. 转发
 
+​	某些函数需要将其一个或多个实参连同类型不变地转发给其他函数，在此情况下，我们需要保持转发实参的所有性质，包括实参类型是否是`const`以及实参是左值还是右值。
 
+下面分析三个这样的函数:
 
+```c++
+template <typename F, typename T1, typename T2> void flip1(F f, T1 t1, T2 t2) {
+  f(t1, t2);
+}
+
+template <typename F, typename T1, typename T2>
+void flip2(F f, T1 &&t1, T2 &&t2) {
+  f(t1, t2);
+}
+
+template <typename F, typename T1, typename T2>
+void flip(F f, T1 &&t1, T2 &&t2) {
+  f(std::forward<T1>(t1), std::forward<T2>(t2));
+}
+```
+
+* `flip1`无法保留参数的引用属性, 考虑如下函数
+
+  * 假设调用为`flip1(f, 42, i)`,此次调用后并没有修改真正i的值，因为`flip1`将`t2`拷贝给了`v2`,没有传递引用。
+
+  ```c++
+  void f(int v1, int &v2) {
+    cout << v1 << " " << ++v2 << endl;
+  }
+  ```
+
+  
+
+* `flip2`可以保留参数的引用属性，考虑如下函数, 当调用`flip2(g, i, 42);`会发生错误, 
+
+  * `int` 类型 `i `做为`flip2`的实参传入，此时发生引用折叠推断出`T1`的类型为 `int &`
+  * 再调用`g(int &&, int &)`此时无法用一个左值实例化`int &&`，编译错误。
+
+  ```c++
+  void g(int &&v1, int &v2) {
+    cout << v1 << " " << v2 << endl;
+  }
+  ```
+
+  
+* 最终版 `flip`，保留引用以及左值右值属性。  这个函数实现中使用了`std::forward`(与 `std::move`同在`utility` 头文件里)；
+
+  * `std::forward`必须通过显式模板实参来调用，返回该显式实参类的右值引用。
 
 
 # 重载与模板
@@ -648,4 +726,3 @@ s2 = std::move(s1);
 
 
 ## 3. 包扩展
-

@@ -31,5 +31,10 @@
 *.out
 *.app
 
+<<<<<<< HEAD
 # cmake
 build/
+=======
+#cmake
+build/*
+>>>>>>> ee23b07ae850ae24df01c02a9328478036ea45f7
